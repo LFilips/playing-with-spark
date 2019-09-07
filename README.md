@@ -31,3 +31,4 @@ Worker-3: 10.5.0.5 http://10.5.0.5:8081/
 The connection to direct ips is not working for now, it is something due to osx and bridged network.
 But the spark master UI at localhost:8080 can be seen (localhost:8081 will be available but one of
 the executor will be picked randomly?)
+
