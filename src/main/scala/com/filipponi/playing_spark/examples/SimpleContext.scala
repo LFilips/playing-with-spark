@@ -7,7 +7,7 @@ import org.apache.spark.{SparkConf, SparkContext}
 
 object SimpleContext {
 
-  def run(args: Array[String]): Unit = {
+  def singleThreadLocal(args: Array[String]): Unit = {
 
     /**
       * This will create a simple local context.
@@ -24,8 +24,44 @@ object SimpleContext {
       .getOrCreate()
 
     //maybe i'll need to add the metrics in the configuration
-    val inputData: RDD[Int] = sparkSession.sparkContext.parallelize(List(1,2,3,4,5))
+    val inputData: RDD[Int] = sparkSession.sparkContext.parallelize(List.tabulate(1000)(x => x))
 
+    printf("This should be run from the main thread")
+    printThreadInfo()
+
+    println("From now on spark task submission kicks in ...")
+    inputData.foreach { num =>
+      printThreadInfo()
+      println(num)
+    }
+
+    sparkSession.stop()
+
+  }
+
+  def multiCoreLocal(args: Array[String]): Unit = {
+
+    /**
+      * With local[4] you can instruct spark to run locally with 4 cores, but why cores and not threads?
+      */
+    val sparkContext = new SparkContext(
+      new SparkConf()
+        .setMaster("local[4]")
+        .setAppName("test")
+        .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+    )
+
+    val sparkSession = SparkSession.builder
+      .config(sparkContext.getConf)
+      .getOrCreate()
+
+    //maybe i'll need to add the metrics in the configuration
+    val inputData: RDD[Int] = sparkSession.sparkContext.parallelize(List.tabulate(1000)(x => x))
+
+    printf("This should be run from the main thread")
+    printThreadInfo()
+
+    println("From now on spark task submission kicks in ...")
     inputData.foreach { num =>
       printThreadInfo()
       println(num)
